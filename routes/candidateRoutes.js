@@ -89,9 +89,6 @@ router.post('/vote/:candidateId',JWTMiddleware, async (req,res)=>{
     const candidateId = req.params.candidateId;
     const userId = req.user.id;
 
-    console.log("candidateId",candidateId);
-    console.log("userId",userId);
-
     const candidate = await Candidate.findById(candidateId);
 
     const user = await User.findById(userId);
@@ -120,8 +117,10 @@ router.post('/vote/:candidateId',JWTMiddleware, async (req,res)=>{
 
        // Increment the vote count for the candidate
        candidate.voteCount++;
+       user.isVoted = true;
 
         await candidate.save();
+        await user.save(); 
 
         console.log('Candidate after voting:', candidate);
         res.status(201).json(candidate);

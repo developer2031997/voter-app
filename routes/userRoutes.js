@@ -12,20 +12,23 @@ router.post('/register',async (req,res)=>{
        console.log('Request Body:', body);
    
        const newUser = await new User(body);
-
-       const payload = {
-        username : body.id
-       }
-
-       const token = generateToken(payload);
-       console.log("token",token)
-
-       // Save the token in the user document
-       newUser.token = token;
    
        const response = await newUser.save();
        console.log('data saved sucessfully !!!');
 
+       const payload = {
+        id: response._id, // Use the newly created user's ID
+        username: response.username,
+        role: response.role
+    };
+
+       const token = generateToken(payload);
+       console.log("token",token)
+       // Save the token in the user document
+
+       // Update the user document with the generated token
+       response.token = token;
+       await response.save();
 
        res.status(200).json({response:response,token:token});
 
@@ -190,6 +193,5 @@ router.delete('/profile/:id', JWTMiddleware,async (req,res)=>{
    }
 })
 // delete user , only admin can do with token
-
 
 module.exports= router;
