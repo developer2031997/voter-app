@@ -28,30 +28,34 @@ const userSchema = new mongoose.Schema({
         type : Boolean,
         require : true,
         default : false
+    },
+    token : {
+        type : String,
+        unique : true,
+        require : true
     }
 })
 
 
 userSchema.pre('save', async function(next) {
     try {
-        console.log('pre-save hook called');
-    console.log('isModified:', this.isModified('password'));
+    console.log('pre-save hook called');
     console.log('current password:', this.password);
-        const person = this;
+    const user = this;
 
-        // Hash the password only if it's modified or new
-        if (!person.isModified('password')) return next();
+    // Generate salt and hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(user.password, salt);
+    console.log("user.password",user.password);
+    console.log("hashPassword",hashPassword);
 
-        // Generate salt and hash the password
-        const salt = await bcrypt.genSalt(10);
-        const hashPassword = await bcrypt.hash(person.password, salt);
-console.log("person.password",person.password)
+    // Update the password with the hashed value
+    user.password = hashPassword;
 
-console.log("hashPassword",hashPassword)
-        // Update the password with the hashed value
-        person.password = hashPassword;
+     // Move the isModified check here
+    console.log('isModified:', user.isModified('password'));
 
-        next();
+    next();
     } catch (error) {
         next(error);
     }
@@ -59,13 +63,18 @@ console.log("hashPassword",hashPassword)
 
 userSchema.methods.comparePassword = async function(candidatePassword) {
     try {
-        console.log("candidatePassword :- ",typeof candidatePassword, candidatePassword)
-        console.log("this.password :- ", typeof this.password, this.password)
-
+        const trimmedCandidatePassword = candidatePassword.trim();
+        const trimmedStoredPassword = this.password.trim();
+        console.log("candidatePassword :- ",typeof trimmedCandidatePassword, trimmedCandidatePassword,trimmedCandidatePassword.length)
+        console.log("this.password :- ", typeof trimmedStoredPassword, trimmedStoredPassword,trimmedStoredPassword.length)
         // Compare candidate password with the stored hashed password
-        const isMatch = await  bcrypt.compare(candidatePassword, this.password);
+        const isMatch = await bcrypt.compare(trimmedCandidatePassword, trimmedStoredPassword);
+
         console.log("isMatch",isMatch);
-        return isMatch;
+
+        if(!isMatch) {
+            throw new Error('Password does not match');
+        }
     } catch (error) {
         throw new Error('Invalid password comparison');
     }

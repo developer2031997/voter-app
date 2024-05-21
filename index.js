@@ -15,7 +15,7 @@ connectMongoDB(MONGO_DB_URL);
 const userRouter = require("./routes/userRoutes");
 const candidateRoutes = require("./routes/candidateRoutes");
 
-app.use('/users' , userRouter);
+app.use('/user' , userRouter);
 app.use('/candidate' , candidateRoutes);
 
 

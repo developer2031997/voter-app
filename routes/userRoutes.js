@@ -1,18 +1,17 @@
 const express = require('express');
-const routes = express.Router();
+const router = express.Router();
 const User = require("../models/user.model");
 const {generateToken,JWTMiddleware} = require("../jwt")
 
-routes
-.post('/signup',async (req,res)=>{  
+
+// register user 
+router.post('/register',async (req,res)=>{  
     try { 
+        
           const body = req.body;
        console.log('Request Body:', body);
    
        const newUser = await new User(body);
-   
-       const response = await newUser.save();
-       console.log('data saved sucessfully !!!');
 
        const payload = {
         username : body.id
@@ -20,6 +19,14 @@ routes
 
        const token = generateToken(payload);
        console.log("token",token)
+
+       // Save the token in the user document
+       newUser.token = token;
+   
+       const response = await newUser.save();
+       console.log('data saved sucessfully !!!');
+
+
        res.status(200).json({response:response,token:token});
 
    }
@@ -27,9 +34,48 @@ routes
            console.log(error);
            res.status(500).json({error : "Internal server error"})
    }
-   }).get('/', JWTMiddleware,  async (req, res) => {
+   });
+// register user 
+
+// login as a admin to get token
+router.post('/login', async (req, res) => {
+
+    // const { role } = req.user;
+
+    // if (role !== 'admin') {
+    //     return res.status(403).json({ error: "Forbidden: Only admins can login and acess tokens" });
+    // }
+
+    try {
+        const {aadhar} = req.body;
+
+        const user = await User.findOne({aadhar: aadhar});
+
+        const payload = {
+            username: user.id
+        }
+        const token = generateToken(payload);
+
+        res.status(200).json({ token: token});
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: 'Internal Server Error'
+        });
+    }
+});
+// login as a admin to get token
+
+// view all list of user
+router.get('/profile', JWTMiddleware,  async (req, res) => {
        try {
-           const result = await Person.find();
+
+        // const { role } = req.user;
+
+        // if (role !== 'admin') {
+        //     return res.status(403).json({ error: "Forbidden: Only admins view all user profile" });
+        // }
+           const result = await User.find();
            console.log(result);
            res.status(200).json({ message: 'Fetch data successfully.', result: result });
        } catch (error) {
@@ -37,61 +83,113 @@ routes
            console.log(error);
            res.status(500).json({ error: "Internal server error" });
        }
-   })
-   .post('/login', async (req, res) => {
+   });
+// view all list of user
+
+// view perticular user using id
+router.get('/profile/:id', JWTMiddleware,  async (req, res) => {
     try {
-      const { username, password } = req.body;
-      const user = await User.findOne({ username: username });
-  
-      if (!user || !(await user.comparePassword(password))) {
-        return res.status(401).json({ error: 'Invalid username or password' });
-      }
 
-const payload = {
-    username : user.id
-}
-const token = generateToken(payload);
+        // const { role } = req.user;
 
-      res.status(200).json({ token : token});
+        // if (role !== 'admin') {
+        //     return res.status(403).json({ error: "Forbidden: Only admins can view profile" });
+        // }
+
+        const id = req.params.id;
+        const result = await User.findById(id);
+        console.log(result);
+        res.status(200).json({ message: 'Fetch data successfully.', result: result });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+     // const result = await Person.find();
+        console.log(error);
+        res.status(500).json({ error: "Internal server error" });
     }
-  })
+});
+// view perticular user using id
 
-routes
-.put('/profile/password',JWTMiddleware,async (req,res)=>{
+// update user data, Only admin can do with token
+router.put('/profile/:id',JWTMiddleware,async (req,res)=>{
     try {
+        // const { role } = req.user;
+
+        // if (role !== 'admin') {
+        //     return res.status(403).json({ error: "Forbidden: Only admins can update user data" });
+        // }
      
-        const userId = user.id;
-     const {currrentPass, newPassword} = req.body;
+        const userId = req.params.id;
+       const updates = req.body;
 
+        const user = await User.findByIdAndUpdate(userId,updates,{new :true});
+        const updateUser = await user.save();
+        console.log("user",updateUser);
 
-        const user = await user.findById(UserId);
+        if (!user) {
+            res.status(404).json({
+                error: "User not Found"
+            });
+        }
 
-        if (!user || !(await user.comparePassword(currrentPass))) {
-            return res.status(401).json({ error: 'Invalid username or password' });
-          }
      
-          user.password = newPassword;
-          await user.save();
+
+        console.log("user data updated succesfully!!!");
+        res.status(200).json(updateUser);
+
         
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: "Internal server error" });
     }
 })
+// update user Only admin can do with token
 
-// Profile route
-routes.get('/profile', JWTMiddleware, async (req, res) => {
-    try{
-    const userdata = req.user;
-    const userId = userData.id;
-    const user = await Person.findById(userId) ;
-    res.status(200).json({user});
-    }catch(err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-    }})
+// update  Only password of user, only admin can do with token
+router.put('/profile/password/:id',JWTMiddleware,async (req,res)=>{
+    try {
+        // const { role } = req.user;
 
-module.exports= routes;
+        // if (role !== 'admin') {
+        //     return res.status(403).json({ error: "Forbidden: Only admins can update user password" });
+        // }
+     
+        const userId = req.params.id;
+     const {password} = req.body;
+     
+
+     console.log("password",password);
+
+
+        const user = await User.findByIdAndUpdate(userId,password,{new:true});
+        console.log("user",user);
+     
+        const updatePassword = await user.save();
+        console.log("user password updated succesfully!!!");
+        res.status(200).json(updatePassword.password);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+})
+// update  Only password of user, only admin can do with token
+
+// delete user , only admin can do with token
+router.delete('/profile/:id', JWTMiddleware,async (req,res)=>{
+   try {
+    // const { role } = req.user;
+
+    // if (role !== 'admin') {
+    //     return res.status(403).json({ error: "Forbidden: Only admins can delete users" });
+    // }
+    const id = req.params.id;
+    const deleteUser = await User.findOneAndDelete(id);
+
+    console.log("user data deleted succesfully!!!");
+    res.status(200).json({"delete User ": deleteUser});
+   } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+   }
+})
+// delete user , only admin can do with token
+
+
+module.exports= router;

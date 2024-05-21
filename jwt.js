@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
+
 
 const JWTMiddleware = (req, res, next) => {
     const authorization = req.headers.authorization;
@@ -17,6 +19,7 @@ const JWTMiddleware = (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         req.user = decoded;
+
         next();
     } catch (error) {
         console.error(error);
@@ -25,7 +28,9 @@ const JWTMiddleware = (req, res, next) => {
 };
 
 const generateToken = (userData) => {
-    return jwt.sign(userData, process.env.JWT_SECRET, {expiresIn : 3000});
+    return jwt.sign(userData, process.env.JWT_SECRET);
 };
 
 module.exports = { JWTMiddleware, generateToken };
+
+// , {expiresIn : 3000}
