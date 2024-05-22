@@ -2,9 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Candidate = require("../models/candidate.model");
 const User = require("../models/user.model");
-
 const {JWTMiddleware} = require("../jwt")
-
 
 // register candidates only admin can do
 router.post('/register', JWTMiddleware, async (req, res) => {
@@ -134,7 +132,6 @@ router.post('/vote/:candidateId',JWTMiddleware, async (req,res)=>{
 }})
 // voting
 
-
 // vote count 
 router.get('/vote/count', async (req, res) => {
     try{
@@ -156,7 +153,5 @@ router.get('/vote/count', async (req, res) => {
     }
 });
 // count vote
-
-
 
 module.exports = router;

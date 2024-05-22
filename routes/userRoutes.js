@@ -8,7 +8,7 @@ const {generateToken,JWTMiddleware} = require("../jwt")
 router.post('/register',async (req,res)=>{  
     try { 
         
-          const body = req.body;
+       const body = req.body;
        console.log('Request Body:', body);
    
        const newUser = await new User(body);
@@ -43,11 +43,11 @@ router.post('/register',async (req,res)=>{
 // login as a admin to get token
 router.post('/login', async (req, res) => {
 
-    // const { role } = req.user;
+    const { role } = req.user;
 
-    // if (role !== 'admin') {
-    //     return res.status(403).json({ error: "Forbidden: Only admins can login and acess tokens" });
-    // }
+    if (role !== 'admin') {
+        return res.status(403).json({ error: "Forbidden: Only admins can login and acess tokens" });
+    }
 
     try {
         const {aadhar} = req.body;
@@ -73,11 +73,11 @@ router.post('/login', async (req, res) => {
 router.get('/profile', JWTMiddleware,  async (req, res) => {
        try {
 
-        // const { role } = req.user;
+        const { role } = req.user;
 
-        // if (role !== 'admin') {
-        //     return res.status(403).json({ error: "Forbidden: Only admins view all user profile" });
-        // }
+        if (role !== 'admin') {
+            return res.status(403).json({ error: "Forbidden: Only admins view all user profile" });
+        }
            const result = await User.find();
            console.log(result);
            res.status(200).json({ message: 'Fetch data successfully.', result: result });
@@ -93,11 +93,11 @@ router.get('/profile', JWTMiddleware,  async (req, res) => {
 router.get('/profile/:id', JWTMiddleware,  async (req, res) => {
     try {
 
-        // const { role } = req.user;
+        const { role } = req.user;
 
-        // if (role !== 'admin') {
-        //     return res.status(403).json({ error: "Forbidden: Only admins can view profile" });
-        // }
+        if (role !== 'admin') {
+            return res.status(403).json({ error: "Forbidden: Only admins can view profile" });
+        }
 
         const id = req.params.id;
         const result = await User.findById(id);
@@ -114,11 +114,11 @@ router.get('/profile/:id', JWTMiddleware,  async (req, res) => {
 // update user data, Only admin can do with token
 router.put('/profile/:id',JWTMiddleware,async (req,res)=>{
     try {
-        // const { role } = req.user;
+        const { role } = req.user;
 
-        // if (role !== 'admin') {
-        //     return res.status(403).json({ error: "Forbidden: Only admins can update user data" });
-        // }
+        if (role !== 'admin') {
+            return res.status(403).json({ error: "Forbidden: Only admins can update user data" });
+        }
      
         const userId = req.params.id;
        const updates = req.body;
@@ -149,11 +149,11 @@ router.put('/profile/:id',JWTMiddleware,async (req,res)=>{
 // update  Only password of user, only admin can do with token
 router.put('/profile/password/:id',JWTMiddleware,async (req,res)=>{
     try {
-        // const { role } = req.user;
+        const { role } = req.user;
 
-        // if (role !== 'admin') {
-        //     return res.status(403).json({ error: "Forbidden: Only admins can update user password" });
-        // }
+        if (role !== 'admin') {
+            return res.status(403).json({ error: "Forbidden: Only admins can update user password" });
+        }
      
         const userId = req.params.id;
      const {password} = req.body;
@@ -178,11 +178,12 @@ router.put('/profile/password/:id',JWTMiddleware,async (req,res)=>{
 // delete user , only admin can do with token
 router.delete('/profile/:id', JWTMiddleware,async (req,res)=>{
    try {
-    // const { role } = req.user;
+    const { role } = req.user;
 
-    // if (role !== 'admin') {
-    //     return res.status(403).json({ error: "Forbidden: Only admins can delete users" });
-    // }
+    if (role !== 'admin') {
+        return res.status(403).json({ error: "Forbidden: Only admins can delete users" });
+    }
+    
     const id = req.params.id;
     const deleteUser = await User.findOneAndDelete(id);
 

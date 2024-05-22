@@ -1,0 +1,29 @@
+common:-
+*****************************************************************************
+candidate/vote/count - GET - Anyone Can see the vote count of candidates.
+
+
+User Role:-
+*****************************************************************************
+/register: POST - Create a new user account.
+candidate/vote/:candidateId - Post - Using user token user can vote.
+candidate/vote/count - GET - Anyone Can see the vote count of candidates.
+
+
+admin role:-
+*****************************************************************************
+(user side) :-
+/register: POST - Create a new user account.
+/login: POST - Log in to an existing account. [ aadhar card number + password ]
+/profile: GET - Get the list of users.
+/profile/:id: GET - Get the detail of perticular user.
+/profile/:id: PUT - Change/Update detail of perticular user.
+/profile/password/:id: PUT - Change/Update only password of perticular user.
+/profile/:id: DELETE - DELETE perticular user.
+
+
+(candidate side) :-
+/register: POST - Create/register a new candidate account.
+/ GET - Get the list of candidate.
+/:id: PUT - Change/Update data of candidate.
+/:id: DELETE - DELETE perticular candidate.
